@@ -33,6 +33,8 @@ class CarbonDateServer(tornado.web.RequestHandler):
 
         logger.log(45, 'Get request from %s' % (realIP))
         logger.log(45, 'URI Requested: %s' % (url))
+
+        self.http_log_string(self.request)
         fileConfig = open("config", "r")
         config = fileConfig.read()
         fileConfig.close()
@@ -55,6 +57,33 @@ class CarbonDateServer(tornado.web.RequestHandler):
         modLoader.loadModule(cfg, args)
         self.run_background(modLoader.run, self.on_complete,
                             args=args, resultDict=result, logger=logger)
+
+    def http_log_string(self, req):
+        realIP = req.remote_ip
+        if req.headers.get("X-Real-IP"):
+            realIP = req.headers.get("X-Real-IP")
+        if req.headers.get("X-Forwarded-For"):
+            realIP = req.headers.get("X-Forwarded-For")
+
+        print('%s - - [%s +0000] "%s %s %s" - - "%s" "%s"' %
+              (realIP, time.strftime("%d/%b/%Y:%X"), req.method,
+               req.uri, req.version, getattr(req, 'referer', '-'),
+               req.headers['User-Agent']))
+
+        return ""
+
+    def cd_log_string(self, req, estimated_date):
+        realIP = req.remote_ip
+        if req.headers.get("X-Real-IP"):
+            realIP = req.headers.get("X-Real-IP")
+        if req.headers.get("X-Forwarded-For"):
+            realIP = req.headers.get("X-Forwarded-For")
+
+        log_str = {"remote-ip": realIP,
+                   "request-time": "microseconds",
+                   "estimated-creation-date": estimated_date,
+                   }
+        print()
 
     def on_complete(self, res):
         resultDict = {}
