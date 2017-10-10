@@ -16,3 +16,4 @@ surt/
 venv/
 .cache
 .coverage
+__pycache__/
